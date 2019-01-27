@@ -1,4 +1,5 @@
 import configparser
+import re
 
 class BanderGame:
 
@@ -23,22 +24,33 @@ class BanderGame:
                     stage[key] = openGameFile[stanza][key]
 
             # Check stanza has required settings
-            # Need work here
+            acceptableStage = True
+
+            if 'message' not in stage.keys():
+                acceptableStage = False
 
         return gameStages
 
-    def __presentStage(self):
+    def __presentStage(self, gameOver=False):
         stageSettings = self.stages[self.stage]
-        print('\n%s' % stageSettings['message'])
-        userChoice = input('Enter your selection: ')
 
-        self.stage = stageSettings['response.%s' % userChoice]
+        print('\n%s' % stageSettings['message'])
+        for key in stageSettings:
+            settingName = key.split('.')
+            if settingName[0] == 'choice':
+                print('%s: %s' % (settingName[1], stageSettings[key]))
+
+        if not gameOver:
+            userChoice = input('Enter the number of your selection: ')
+
+            self.stage = stageSettings['response.%s' % userChoice]
 
     def playGame(self):
         stageSettings = self.stages[self.stage]
         while not (stageSettings.get('gamewinning',False) or stageSettings.get('gameending',False)):
             self.__presentStage()
             stageSettings = self.stages[self.stage]
+        self.__presentStage(True)
         if stageSettings.get('gamewinning', False):
             print('You won!')
         elif stageSettings.get('gameending', False):
@@ -51,7 +63,6 @@ def main():
     myGameFile = 'testGame.conf'
     myGame = BanderGame(myGameFile)
     myGame.playGame()
-    #print(myGame)
 
 if __name__=="__main__":
     main()
