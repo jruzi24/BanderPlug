@@ -2,6 +2,14 @@ import configparser
 import logging
 import re
 
+# Temporary logging settings (eventually will move this to a logging.conf file)
+logger = logging.getLogger('banderplug')
+logger.setLevel(logging.DEBUG)
+fh = logging.FileHandler('BanderPlug.log')
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+logger.addHandler(fh)
+
 class BanderGame:
 
     def __init__(self,gameFile,saveFile=None):
@@ -17,18 +25,30 @@ class BanderGame:
         stanzas = openGameFile.sections()
         gameStages = {}
 
+
         for stanza in stanzas:
 
-            # Check stanza has required settings
-            if 'id' not in stage.keys() and stanza!='default':
-                logging.error('The stage - %s - is incorrectly configured: missing id' % stanza)
+            # Check for good ID
+            stageID = openGameFile[stanza].get('id','-1')
+            try:
+                stageID = int(stageID)
+            except ValueError, e:
+                logger.error('The stage - %s - is incorrectly configured: bad id' % stanza)
                 exit(1)
-            elif 'message' not in stage.keys() and stanza!='default':
-                logging.error('The stage - %s - is incorrectly configured: missing message' % stanza)
+
+            gameStages[str(stageID)] = {}
+            stage = gameStages[str(stageID)]
+
+            for key in openGameFile[stanza]:
+                if key != 'id':
+                    stage[key] = openGameFile[stanza][key]
+
+            if 'message' not in stage.keys() and stanza!='default':
+                logger.error('The stage - %s - is incorrectly configured: missing message' % stanza)
                 exit(1)
             elif ('gameEnding' not in stage.keys() and 'gameWinning' not in stage.keys()) \
                     or ('gameEnding' not in stage.keys() and openGameFile[stanza]['gameWinning']!='True') \
-                    or ('gameWinning' not in stage.keys() and penGameFile[stanza]['gameEnding']!='True'):
+                    or ('gameWinning' not in stage.keys() and openGameFile[stanza]['gameEnding']!='True'):
                 numChoices = 0
                 choicePattern = re.compile(r"choice\.(\d+)\s+=")
                 for key in stage.keys():
@@ -36,17 +56,10 @@ class BanderGame:
                     if matching:
                         numChoices += 1
                         if 'response.%s' % matching.group(1) not in stage.keys():
-                            logging.error('The stage - %s - is missing a response for choice %s' \
+                            logger.error('The stage - %s - is missing a response for choice %s' \
                                           % (stanza,matching.group(1)))
                 if numChoices == 0:
-                    logging.error('The stage - %s - does not have any choices' % stanza)
-
-            gameStages[openGameFile[stanza]['id']] = {}
-            stage = gameStages[openGameFile[stanza]['id']]
-
-            for key in openGameFile[stanza]:
-                if key != 'id':
-                    stage[key] = openGameFile[stanza][key]
+                    logger.error('The stage - %s - does not have any choices' % stanza)
 
         self.stages = gameStages
 
@@ -85,13 +98,6 @@ class BanderGame:
         return str(self.stages)
 
 def main():
-    #Temporary logging settings (eventually will move this to a logging.conf file)
-    logger = logging.getLogger('banderplug')
-    logger.setLevel(logging.DEBUG)
-    fh = logging.FileHandler('BanderPlug.log')
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
 
     myGameFile = 'testGame.conf'
     myGame = BanderGame(myGameFile)
