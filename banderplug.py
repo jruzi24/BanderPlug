@@ -67,10 +67,14 @@ class BanderGame:
         stageSettings = self.stages[self.stage]
 
         print('\n%s' % stageSettings['message'])
+        choices = {}
         for key in stageSettings:
             settingName = key.split('.')
             if settingName[0] == 'choice':
-                print('%s: %s' % (settingName[1], stageSettings[key]))
+                choices[settingName[1]] = stageSettings[key]
+
+        for num,option in sorted(choices.items()):
+            print('%s: %s' % (num, option))
 
         if not gameOver:
             waitingForGoodInput = True
