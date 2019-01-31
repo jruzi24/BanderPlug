@@ -24,33 +24,41 @@ class BanderGame:
         openGameFile.read(gameFile)
         stanzas = openGameFile.sections()
         gameStages = {}
-
+        idLinks = []
 
         for stanza in stanzas:
 
-            # Check for good ID
-            stageID = openGameFile[stanza].get('id','-1')
+            # Check for Valid ID
+            stageID = openGameFile[stanza].get('id','BAD')
             try:
                 stageID = int(stageID)
             except ValueError, e:
                 logger.error('The stage - %s - is incorrectly configured: bad id' % stanza)
                 exit(1)
 
+            # Begin creating stage dictionary
             gameStages[str(stageID)] = {}
             stage = gameStages[str(stageID)]
 
-            for key in openGameFile[stanza]:
+            for key,value in openGameFile[stanza].items():
                 if key != 'id':
-                    stage[key] = openGameFile[stanza][key]
+                    stage[key] = value
 
+            # Fill in default values for potentially empty keys
+            if 'gamewinning' not in stage:
+                stage['gamewinning'] = 'False'
+            if 'gameending' not in stage:
+                stage['gameending'] = 'False'
+
+            # Validate stage has a message
             if 'message' not in stage.keys() and stanza!='default':
                 logger.error('The stage - %s - is incorrectly configured: missing message' % stanza)
                 exit(1)
-            elif ('gameEnding' not in stage.keys() and 'gameWinning' not in stage.keys()) \
-                    or ('gameEnding' not in stage.keys() and openGameFile[stanza]['gameWinning']!='True') \
-                    or ('gameWinning' not in stage.keys() and openGameFile[stanza]['gameEnding']!='True'):
+
+            # Validate stage has choices, unless it is the end of the game
+            if stage['gameending'] == 'False' and stage['gamewinning'] == 'False' and stanza!='default':
                 numChoices = 0
-                choicePattern = re.compile(r"choice\.(\d+)\s+=")
+                choicePattern = re.compile(r"choice\.(\d+)")
                 for key in stage.keys():
                     matching = choicePattern.match(key)
                     if matching:
@@ -58,8 +66,18 @@ class BanderGame:
                         if 'response.%s' % matching.group(1) not in stage.keys():
                             logger.error('The stage - %s - is missing a response for choice %s' \
                                           % (stanza,matching.group(1)))
+                            exit(1)
+                        # Add the response to a list for later verification that the new stage ID exists
+                        idLinks.append((stanza,stage['response.%s' % matching.group(1)]))
                 if numChoices == 0:
                     logger.error('The stage - %s - does not have any choices' % stanza)
+                    exit(1)
+
+        # Validate that choice responses contain valid stage IDs
+        for stanza,link in idLinks:
+            if link not in gameStages:
+                logger.error('The stage - %s - links to a nonexistant stage ID: %s' % (stanza,link))
+                exit(1)
 
         self.stages = gameStages
 
@@ -89,13 +107,13 @@ class BanderGame:
 
     def playGame(self):
         stageSettings = self.stages[self.stage]
-        while not (stageSettings.get('gamewinning',False) or stageSettings.get('gameending',False)):
+        while not (stageSettings['gamewinning'] == 'True' or stageSettings['gameending'] == 'True'):
             self.__presentStage()
             stageSettings = self.stages[self.stage]
         self.__presentStage(True)
-        if stageSettings.get('gamewinning', False):
+        if stageSettings['gamewinning'] == 'True':
             print('You won!')
-        elif stageSettings.get('gameending', False):
+        elif stageSettings['gameending'] == 'True':
             print('You lost!')
 
     def __str__(self):
