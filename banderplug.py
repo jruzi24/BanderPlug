@@ -2,22 +2,18 @@
 banderplug.py
 Author: Jacob Ruzi
 This script is intended to be run with an ini formatted configuration file that defines a
-'Choose Your Own Adventure' game. See example_game.conf for guidelines on how to format your
+'Choose Your Own Adventure' game. See testGame.conf and README.md for guidelines on how to format your
 game. See BanderPlug.log in the current directory for error details.
 """
 
 import configparser
-import logging
+import logging.config
 import re
 import argparse
 
-# Temporary logging settings (eventually will move this to a logging.conf file)
-logger = logging.getLogger('banderplug')
-logger.setLevel(logging.DEBUG)
-fh = logging.FileHandler('BanderPlug.log')
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-fh.setFormatter(formatter)
-logger.addHandler(fh)
+# Set up logging
+logging.config.fileConfig('logging.conf')
+logger = logging.getLogger('banderlog')
 
 class BanderGame:
     """
@@ -43,7 +39,7 @@ class BanderGame:
         Let the user know the game configuration has failed.
         :param message: A description of the configuration error
         """
-        logger.error('Configuration for the game: %s: is incorrect - %s' % (self.title,message))
+        logger.critical('Configuration for the game: %s: is incorrect - %s' % (self.title,message))
         exit(1)
 
 
@@ -54,7 +50,10 @@ class BanderGame:
         :param gameFile: an ini formatted configuration file that defines the game
         """
         openGameFile = configparser.ConfigParser()
-        openGameFile.read(gameFile)
+        try:
+            openGameFile.read(gameFile)
+        except Exception as e:
+            self.__failConfiguration('Cannot read game configuration file: %s' % gameFile)
         stanzas = openGameFile.sections()
         gameStages = {}
         idLinks = []
@@ -195,11 +194,7 @@ def getArguments():
 
     return parser.parse_args()
 
-def main():
-
+if __name__=="__main__":
     args = getArguments()
     myGame = BanderGame(args.gameFile)
     myGame.playGame()
-
-if __name__=="__main__":
-    main()
