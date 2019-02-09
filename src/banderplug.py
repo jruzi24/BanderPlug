@@ -2,7 +2,7 @@
 banderplug.py
 Author: Jacob Ruzi
 This script is intended to be run with an ini formatted configuration file that defines a
-'Choose Your Own Adventure' game. See testGame.conf and README.md for guidelines on how to format your
+'Choose Your Own Adventure' game. See example_game.ini and README.md for guidelines on how to format your
 game. See BanderPlug.log in the current directory for error details.
 """
 
