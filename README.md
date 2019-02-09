@@ -1,15 +1,15 @@
-#Overview
+# Overview
 The intention of BanderPlug is to easily allow users to create their own "Choose Your Own Adventure" games. Users will require no Python knowledge and can simply create a text based configuration file to share with others.
 
-##Usage
+## Usage
 ```CLI
 usage: banderplug.py [-h] gameFile
 ```
 
-#Configuration
+# Configuration
 The game configuration file must be created in an .ini format.
 
-##Required Settings Stanza
+## Required Settings Stanza
 The .ini file must contain a settings stanza with an id of -1 and a title, as such:
 
 ```ini
@@ -18,7 +18,7 @@ id=-1
 title=A Day in the Office
 ```
 
-##Game Stages
+## Game Stages
 All other stanzas are considered stages of the game. The first game stage must have an id of 0.
 
 All game stages require a message, which describes the stage to the user.
