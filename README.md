@@ -3,17 +3,17 @@ The intention of BanderPlug is to easily allow users to create their own "Choose
 
 ##Usage
 ```CLI
-usage: banderplug.py [-h] [--saveFile SAVEFILE] gameFile
+usage: banderplug.py [-h] gameFile
 ```
 
 #Configuration
 The game configuration file must be created in an .ini format.
 
-##Required Default Stanza
-The .ini file must contain a default stanza with an id of -1 and a title, as such:
+##Required Settings Stanza
+The .ini file must contain a settings stanza with an id of -1 and a title, as such:
 
 ```ini
-[default]
+[settings]
 id=-1
 title=A Day in the Office
 ```

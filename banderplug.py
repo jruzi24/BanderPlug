@@ -22,17 +22,13 @@ class BanderGame:
 
     Parameters:
     gameFile - an ini formatted configuration file that defines the game
-    saveFile - an ini formatted configuration file that tracks user's progress (not currently supported)
     """
 
-    def __init__(self,gameFile,saveFile=None):
-        self.saveFile = None
+    def __init__(self,gameFile):
         self.stage = '0'
         self.title = ''
         # Use helper method to check gameFile validity
         self.__loadStages(gameFile)
-        if saveFile:
-            self.saveFile = saveFile
 
     def __failConfiguration(self,message):
         """
@@ -58,17 +54,17 @@ class BanderGame:
         gameStages = {}
         idLinks = []
 
-        # Check for default stanza
-        if 'default' not in stanzas:
-            self.__failConfiguration('A default stanza is required')
+        # Check for settings stanza
+        if 'settings' not in stanzas:
+            self.__failConfiguration('A settings stanza is required')
 
-        # Check for default's ID and title
-        defaultID = openGameFile['default'].get('id','BAD')
-        defaultTitle = openGameFile['default'].get('title','BAD')
-        if defaultID!='-1' or defaultTitle=='BAD':
-            self.__failConfiguration('The default stanza must have an ID of -1 and a title.')
-        self.title = defaultTitle
-        logger.info('The game is being configured: %s' % defaultTitle)
+        # Check for settings's ID and title
+        settingsID = openGameFile['settings'].get('id','BAD')
+        settingsTitle = openGameFile['settings'].get('title','BAD')
+        if settingsID!='-1' or settingsTitle=='BAD':
+            self.__failConfiguration('The settings stanza must have an ID of -1 and a title.')
+        self.title = settingsTitle
+        logger.info('The game is being configured: %s' % settingsTitle)
 
         for stanza in stanzas:
 
@@ -98,11 +94,11 @@ class BanderGame:
                 stage['gameending'] = 'False'
 
             # Validate stage has a message
-            if 'message' not in stage.keys() and stanza!='default':
+            if 'message' not in stage.keys() and stanza!='settings':
                 self.__failConfiguration('The stage - %s - is incorrectly configured: missing message' % stanza)
 
             # Validate stage has choices, unless it is the end of the game
-            if stage['gameending'] == 'False' and stage['gamewinning'] == 'False' and stanza!='default':
+            if stage['gameending'] == 'False' and stage['gamewinning'] == 'False' and stanza!='settings':
                 numChoices = 0
                 choicePattern = re.compile(r"choice\.(\d+)")
                 for key in stage.keys():
@@ -185,12 +181,11 @@ class BanderGame:
 
 def getArguments():
     """
-    Gets the name of the gameFile (and possible saveFile).
+    Gets the name of the gameFile.
     :return: The arguments provided by the user
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('gameFile', help='The ini formatted file with the game configuration')
-    parser.add_argument('--saveFile', help='A file to save your game progress')
 
     return parser.parse_args()
 
