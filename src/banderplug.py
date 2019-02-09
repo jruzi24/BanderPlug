@@ -10,9 +10,10 @@ import configparser
 import logging.config
 import re
 import argparse
+import os.path
 
 # Set up logging
-logging.config.fileConfig('logging.conf')
+logging.config.fileConfig(os.path.join('conf','logging.conf'))
 logger = logging.getLogger('banderlog')
 
 class BanderGame:
