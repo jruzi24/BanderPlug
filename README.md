@@ -38,7 +38,7 @@ You must define a stage with an ID for each of your available responses.
 ```ini
 [commute]
 id=1
-message=You're stuck in traffic on your way to work.
+message=You are stuck in traffic on your way to work.
 choice.1=Take the carpool lane.
 response.1=3
 choice.2=Honk!
